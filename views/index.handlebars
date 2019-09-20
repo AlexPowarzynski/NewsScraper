@@ -1,0 +1,21 @@
+
+<div class="jumbotron jumbotron-fluid">
+    <div class="container text-center">
+        <h1 class="display-4">News Scraper</h1>
+        <h3 class="lead">The news that is scraped came from Reuters.</h3>
+    </div>
+</div>
+
+<ul>
+{{#each articles}}
+    <div class="card">
+        <div class="card-body">
+            <a href="{{{ link }}}"><h5 class="card-title">{{{ title }}}</h5></a>
+            <h5 class="card-title">{{{ title }}}</h5>
+            <p class="card-text">{{{ summary }}}</p>
+            <button type="button" class="btn btn-danger saveArticle" data-id="{{_id}}">Save</button>
+        </div>
+    </div>
+{{/each}}
+</ul>
+
