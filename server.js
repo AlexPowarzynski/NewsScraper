@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 
 //Server Connection
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/newsScraper";
+const MONGODB_URI = "mongodb://username1:password1@ds253017.mlab.com:53017/heroku_kr5xs6xb" || "mongodb://localhost/newsScraper";
 var PORT = process.env.PORT || 3000;
 var app = express();
 
