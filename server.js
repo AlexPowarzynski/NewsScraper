@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const path = require("path");
 
 //Server Connection
-const MONGODB_URI = "mongodb://username1:password1@ds253017.mlab.com:53017/heroku_kr5xs6xb" || "mongodb://localhost/newsScraper";
 var PORT = process.env.PORT || 3000;
 var app = express();
 
@@ -14,7 +13,8 @@ var axios = require("axios");
 var cheerio = require("cheerio");
 
 // Require Article model
-var Article = require("./models/Article");
+// var Article = require("./models/Article");
+var db = require("./models");
 
 //==================================================
 //Handlebars
@@ -33,11 +33,12 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Connect to the Mongo DB
+const MONGODB_URI = "mongodb://username1:password1@ds253017.mlab.com:53017/heroku_kr5xs6xb" || "mongodb://localhost/newsScraper";
 mongoose.connect(MONGODB_URI);
 
 // Routes
 app.get("/", function(req, res){
-  Article.find({"saved": false}, function(error, data) {
+  db.Article.find({"saved": false}, function(error, data) {
     let loadedData = {
       article: data
     };
@@ -51,9 +52,9 @@ app.get("/", function(req, res){
 // A GET route for scraping the reuters website
 app.get("/scrape", function(req, res) {
   // First, we grab the body of the html with axios
-  axios.get("https://www.reuters.com").then(function(response) {
+  axios.get("https://www.reuters.com/").then(function(response) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
-    let $ = cheerio.load(response.data);
+    var $ = cheerio.load(response.data);
 
     // Now, we grab every h2 within an article tag, and do the following:
     $("article").each(function(i, element) {
@@ -62,17 +63,15 @@ app.get("/scrape", function(req, res) {
 
       // Add the text and href of every link, and save them as properties of the result object
       result.title = $(this)
-        .children("a")
+        .find("h3")
         .text();
-      result.link = $(this)
-        .children("a")
+      result.link = 'https://www.reuters.com' + $(this)
+        .find("a")
         .attr("href");
-      result.summary = $(this)
-        .children("p")
-          .text();
+      result.summary = $(this).find("p").text();
 
       // Create a new Article using the `result` object built from scraping
-      Article.create(result)
+      db.Article.create(result)
         .then(function(dbArticle) {
           // View the added result in the console
           console.log(dbArticle);
@@ -82,13 +81,13 @@ app.get("/scrape", function(req, res) {
           console.log(err);
         });
     });
-
+      res.send("Scrape Complete")
   });
 });
 
 // Route for getting all Articles from the db
 app.get("/articles", function(req, res){
-  Article.find({}, function(error, data) {
+  db.Article.find({}, function(error, data) {
    res.json(data);
     })
   });
@@ -96,7 +95,7 @@ app.get("/articles", function(req, res){
 // Route for grabbing a specific Article by id, populate it with it's note
 app.get("/articles/:id", function(req, res) {
   // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
-  Article.findOne({ _id: req.params.id })
+  db.Article.findOne({ _id: req.params.id })
     // ..and populate all of the notes associated with it
     .populate("note")
     .then(function(dbArticle) {
@@ -109,9 +108,9 @@ app.get("/articles/:id", function(req, res) {
     });
 });
 //Delete single article
-app.get("/articles/delete/:id", function(req, res) {
+app.post("/articles/delete/:id", function(req, res) {
   // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
-  Article.findOne({ _id: req.params.id })
+  db.Article.findOne({ _id: req.params.id })
       .update({ saved: false })
     .then(function(dbArticle) {
       // If we were able to successfully find an Article with the given id, send it back to the client
@@ -124,9 +123,9 @@ app.get("/articles/delete/:id", function(req, res) {
 });
 
 //Save single article
-app.get("/articles/save/:id", function(req, res) {
+app.post("/articles/save/:id", function(req, res) {
   // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
-  Article.findOne({ _id: req.params.id })
+  db.Article.findOne({ _id: req.params.id })
       .update({ saved: true })
     .then(function(dbArticle) {
       // If we were able to successfully find an Article with the given id, send it back to the client
@@ -140,7 +139,7 @@ app.get("/articles/save/:id", function(req, res) {
 
 //Route for getting saved Articles from the db
 app.get("/saved", function(req, res){
-  Article.find({"saved": true}, function(error, data) {
+  db.Article.find({"saved": true}, function(error, data) {
     let savedData = {
       article: data
     };
@@ -148,12 +147,6 @@ app.get("/saved", function(req, res){
     res.render("saved", savedData);
   });
 });
-
-
-
-
-
-
 
 // Start the server
 app.listen(PORT, function() {

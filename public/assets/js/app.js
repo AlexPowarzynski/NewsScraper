@@ -1,11 +1,12 @@
 //Scrape button
-$(document).on("click", ".scrape", function() {
+$("#scrape").on("click", function() {
+            console.log("Clicked");
     $.ajax({
         method: "GET",
         url: '/scrape'
         }).then(function(data){
             console.log(data);
-            location.reload();
+            window.location = "/";
         })
 
 });

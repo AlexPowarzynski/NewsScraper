@@ -1,0 +1,16 @@
+.dim {
+    background-color: #17A2B8;
+    padding: 10px 10px;
+    margin: -5px -5px;
+    border: black;
+}
+a {
+    color: white;
+}
+a:hover {
+    color: lightgrey;
+    text-decoration: none;
+}
+.btn {
+    float: right
+}
